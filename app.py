@@ -294,6 +294,21 @@ elif st.session_state.page == 'LLM':
         label='Prediction Area'
     )
 
+    # 실제 이후 30시간의 실제 가격 데이터 가져오기
+    future_start_date = base_end_date
+    actual_future = train_data.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train_data.loc[future_start_date:].empty else pd.Series(dtype=float)
+    if actual_future.max() != actual_future.min():
+        actual_future_norm = (actual_future - actual_future.min()) / (actual_future.max() - actual_future.min())
+    else:
+        actual_future_norm = np.zeros(len(actual_future))
+
+    # x축에서의 시작 위치 설정 (기준 구간의 끝)
+    start_x = len(base_norm)  # 24
+
+    # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
+    ax.plot(range(start_x, start_x + len(actual_future_norm)),
+             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
+
     ax.set_title("BTC 1H Pattern Matching (Close as Series to avoid ambiguous truth value)")
     ax.set_xlabel("Hour")
     ax.set_ylabel("Normalized Price")
