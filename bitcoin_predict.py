@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
+import time
 
 st.title("차트 패턴 유사도 검색")
 
@@ -43,170 +44,172 @@ base_end_date = st.date_input(
 
 # --- (3) 버튼 클릭 -> 분석 ---
 if st.button("그래프 분석 & 시각화"):
-    # 3-1) st.date_input()은 datetime.date이므로 pd.Timestamp로 변환
-    base_start_ts = pd.Timestamp(base_start_date)
-    base_end_ts   = pd.Timestamp(base_end_date)
-    today_ts      = pd.Timestamp.today().normalize()  # 오늘 날짜 (자정 기준)
+    with st.spinner("현재 분석/예측 중입니다. 잠시만 기다려주세요..."):
+        time.sleep(1)
+        # 3-1) st.date_input()은 datetime.date이므로 pd.Timestamp로 변환
+        base_start_ts = pd.Timestamp(base_start_date)
+        base_end_ts   = pd.Timestamp(base_end_date)
+        today_ts      = pd.Timestamp.today().normalize()  # 오늘 날짜 (자정 기준)
 
-    # yfinance는 미래(오늘 이후) 데이터가 없으므로, 미래 날짜를 잘라낸다
-    adj_start = min(base_start_ts, today_ts)
-    adj_end   = min(base_end_ts,   today_ts)
+        # yfinance는 미래(오늘 이후) 데이터가 없으므로, 미래 날짜를 잘라낸다
+        adj_start = min(base_start_ts, today_ts)
+        adj_end   = min(base_end_ts,   today_ts)
 
-    # end 날짜에 +1일 -> 해당 날짜 종가까지 포함
-    adj_end_for_download = adj_end + pd.Timedelta(days=1)
+        # end 날짜에 +1일 -> 해당 날짜 종가까지 포함
+        adj_end_for_download = adj_end + pd.Timedelta(days=1)
 
-    if adj_end_for_download <= adj_start:
-        st.warning(f"입력 기간이 유효하지 않습니다. (start={base_start_ts}, end={base_end_ts})")
-        st.stop()
-
-    st.info(f"yfinance에서 데이터를 다운받는 기간: {adj_start} ~ {adj_end} (end={adj_end_for_download})")
-
-    # 3-2) yfinance 다운로드 (Timestamp 그대로 전달)
-    with st.spinner("yfinance로 데이터를 가져오는 중..."):
-        try:
-            yfin_data = yf.download(
-                tickers="BTC-USD",
-                interval="1h",
-                start=adj_start,
-                end=adj_end_for_download
-            )
-        except Exception as e:
-            st.error(f"yfinance 데이터 수집 오류: {e}")
+        if adj_end_for_download <= adj_start:
+            st.warning(f"입력 기간이 유효하지 않습니다. (start={base_start_ts}, end={base_end_ts})")
             st.stop()
 
-    if yfin_data.empty:
-        st.warning("yfinance에서 해당 구간의 데이터를 가져오지 못했습니다. (미래 날짜이거나 거래 데이터 없음)")
-        st.stop()
+        st.info(f"yfinance에서 데이터를 다운받는 기간: {adj_start} ~ {adj_end} (end={adj_end_for_download})")
 
-    st.write(f"**yfinance Base 구간 로드 성공**: {yfin_data.shape} rows")
-    st.dataframe(yfin_data)
+        # 3-2) yfinance 다운로드 (Timestamp 그대로 전달)
+        with st.spinner("yfinance로 데이터를 가져오는 중..."):
+            try:
+                yfin_data = yf.download(
+                    tickers="BTC-USD",
+                    interval="1h",
+                    start=adj_start,
+                    end=adj_end_for_download
+                )
+            except Exception as e:
+                st.error(f"yfinance 데이터 수집 오류: {e}")
+                st.stop()
 
-    # --- (4) Base 구간: 'Close' 컬럼만 추출 => Series ---
-    base = yfin_data['Close'].iloc[:,0]
+        if yfin_data.empty:
+            st.warning("yfinance에서 해당 구간의 데이터를 가져오지 못했습니다. (미래 날짜이거나 거래 데이터 없음)")
+            st.stop()
 
-    # window_size = base 길이
-    window_size = len(base)
-    next_date = 30
+        st.write(f"**yfinance Base 구간 로드 성공**: {yfin_data.shape} rows")
+        st.dataframe(yfin_data)
 
-    if window_size == 0:
-        st.warning("[주의] 기준 구간(Base)에 데이터가 없습니다. (window_size=0)")
-        st.stop()
+        # --- (4) Base 구간: 'Close' 컬럼만 추출 => Series ---
+        base = yfin_data['Close'].iloc[:,0]
 
-    # --- (5) 코사인 유사도 함수 ---
-    def cosine_similarity(x, y):
-        x = np.array(x).flatten()
-        y = np.array(y).flatten()
-        if np.linalg.norm(x) == 0 or np.linalg.norm(y) == 0:
-            return 0.0
-        return np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+        # window_size = base 길이
+        window_size = len(base)
+        next_date = 30
 
-    # (6) Base 정규화
-    # base는 Series이므로 base.max(), base.min()은 스칼라(float)
-    if base.max() != base.min():
-        base_norm = (base - base.min()) / (base.max() - base.min())
-    else:
-        base_norm = np.zeros(len(base))
+        if window_size == 0:
+            st.warning("[주의] 기준 구간(Base)에 데이터가 없습니다. (window_size=0)")
+            st.stop()
 
-    # (7) 훈련 데이터에서 window_size만큼 슬라이딩하며 유사도 계산
-    moving_cnt = len(train_close) - window_size
-    if moving_cnt <= 0:
-        st.warning("훈련 데이터가 너무 적거나 윈도우가 너무 큽니다. (pattern 탐색 불가)")
-        st.stop()
+        # --- (5) 코사인 유사도 함수 ---
+        def cosine_similarity(x, y):
+            x = np.array(x).flatten()
+            y = np.array(y).flatten()
+            if np.linalg.norm(x) == 0 or np.linalg.norm(y) == 0:
+                return 0.0
+            return np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
 
-    sim_list = []
-    for i in range(moving_cnt):
-        target = train_close.iloc[i : i + window_size]
-        if (len(target) == window_size) and (target.max() != target.min()):
-            target_norm = (target - target.min()) / (target.max() - target.min())
-            sim = cosine_similarity(base_norm, target_norm)
-            sim_list.append(sim)
+        # (6) Base 정규화
+        # base는 Series이므로 base.max(), base.min()은 스칼라(float)
+        if base.max() != base.min():
+            base_norm = (base - base.min()) / (base.max() - base.min())
         else:
-            sim_list.append(0.0)
+            base_norm = np.zeros(len(base))
 
-    sim_series = pd.Series(sim_list)
+        # (7) 훈련 데이터에서 window_size만큼 슬라이딩하며 유사도 계산
+        moving_cnt = len(train_close) - window_size
+        if moving_cnt <= 0:
+            st.warning("훈련 데이터가 너무 적거나 윈도우가 너무 큽니다. (pattern 탐색 불가)")
+            st.stop()
 
-    if sim_series.empty:
-        st.write("유사도 계산 결과가 없습니다.")
-        st.stop()
+        sim_list = []
+        for i in range(moving_cnt):
+            target = train_close.iloc[i : i + window_size]
+            if (len(target) == window_size) and (target.max() != target.min()):
+                target_norm = (target - target.min()) / (target.max() - target.min())
+                sim = cosine_similarity(base_norm, target_norm)
+                sim_list.append(sim)
+            else:
+                sim_list.append(0.0)
 
-    # 디버깅: TOP 10 similarity
-    top10 = sim_series.sort_values(ascending=False).head(10)
-    st.write("TOP 10 similarity:")
-    st.dataframe(top10.rename("Similarity"))
+        sim_series = pd.Series(sim_list)
 
-    # (8) 유사도 0.98 이상 구간들의 미래 패턴 평균
-    threshold = 0.98
-    high_indices = sim_series[sim_series >= threshold].index
-    patterns_ext = []
+        if sim_series.empty:
+            st.write("유사도 계산 결과가 없습니다.")
+            st.stop()
 
-    for idx in high_indices:
-        future_segment = train_close.iloc[idx + window_size : idx + window_size + next_date]
-        if (len(future_segment) == next_date) and (future_segment.max() != future_segment.min()):
-            f_norm = (future_segment - future_segment.min()) / (future_segment.max() - future_segment.min())
-            patterns_ext.append(f_norm.values)
+        # 디버깅: TOP 10 similarity
+        top10 = sim_series.sort_values(ascending=False).head(10)
+        st.write("TOP 10 similarity:")
+        st.dataframe(top10.rename("Similarity"))
 
-    if len(patterns_ext) > 0:
-        mean_pattern_extended = np.mean(patterns_ext, axis=0)
-        st.write(f"유사도 {threshold} 이상 패턴 수:", len(patterns_ext))
-    else:
-        mean_pattern_extended = None
-        st.write(f"유사도 {threshold} 이상인 패턴이 없습니다.")
+        # (8) 유사도 0.98 이상 구간들의 미래 패턴 평균
+        threshold = 0.98
+        high_indices = sim_series[sim_series >= threshold].index
+        patterns_ext = []
 
-    # (9) 유사도 1위 구간 idx
-    best_idx = sim_series.idxmax()
+        for idx in high_indices:
+            future_segment = train_close.iloc[idx + window_size : idx + window_size + next_date]
+            if (len(future_segment) == next_date) and (future_segment.max() != future_segment.min()):
+                f_norm = (future_segment - future_segment.min()) / (future_segment.max() - future_segment.min())
+                patterns_ext.append(f_norm.values)
 
-    # (10) 시각화
-    fig, ax = plt.subplots(figsize=(12, 6))
-
-    # Base (Normalized)
-    ax.plot(
-        range(len(base_norm)), 
-        base_norm, 
-        label=f"[Base] {adj_start} ~ {adj_end}", 
-        color='black'
-    )
-
-    # Best Match
-    if best_idx is not None and best_idx >= 0:
-        pred_start = best_idx + window_size
-        pred_end   = pred_start + next_date
-        best_prediction = train_close.iloc[pred_start:pred_end]
-
-        if (len(best_prediction) == next_date) and (best_prediction.max() != best_prediction.min()):
-            best_prediction_norm = (best_prediction - best_prediction.min()) / (best_prediction.max() - best_prediction.min())
+        if len(patterns_ext) > 0:
+            mean_pattern_extended = np.mean(patterns_ext, axis=0)
+            st.write(f"유사도 {threshold} 이상 패턴 수:", len(patterns_ext))
         else:
-            best_prediction_norm = np.zeros(len(best_prediction))
+            mean_pattern_extended = None
+            st.write(f"유사도 {threshold} 이상인 패턴이 없습니다.")
 
+        # (9) 유사도 1위 구간 idx
+        best_idx = sim_series.idxmax()
+
+        # (10) 시각화
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Base (Normalized)
         ax.plot(
-            range(len(base_norm), len(base_norm) + len(best_prediction_norm)),
-            best_prediction_norm,
-            label='[Prediction] Best Match', 
-            color='red'
+            range(len(base_norm)), 
+            base_norm, 
+            label=f"[Base] {adj_start} ~ {adj_end}", 
+            color='black'
         )
 
-    # Mean pattern
-    if mean_pattern_extended is not None:
-        ax.plot(
-            range(len(base_norm), len(base_norm) + len(mean_pattern_extended)),
-            mean_pattern_extended,
-            label=f"[Prediction] Mean (sim >= {threshold})", 
-            color='blue'
+        # Best Match
+        if best_idx is not None and best_idx >= 0:
+            pred_start = best_idx + window_size
+            pred_end   = pred_start + next_date
+            best_prediction = train_close.iloc[pred_start:pred_end]
+
+            if (len(best_prediction) == next_date) and (best_prediction.max() != best_prediction.min()):
+                best_prediction_norm = (best_prediction - best_prediction.min()) / (best_prediction.max() - best_prediction.min())
+            else:
+                best_prediction_norm = np.zeros(len(best_prediction))
+
+            ax.plot(
+                range(len(base_norm), len(base_norm) + len(best_prediction_norm)),
+                best_prediction_norm,
+                label='[Prediction] Best Match', 
+                color='red'
+            )
+
+        # Mean pattern
+        if mean_pattern_extended is not None:
+            ax.plot(
+                range(len(base_norm), len(base_norm) + len(mean_pattern_extended)),
+                mean_pattern_extended,
+                label=f"[Prediction] Mean (sim >= {threshold})", 
+                color='blue'
+            )
+
+        # 기준 구간 & 예측 영역 표시
+        ax.axvline(x=len(base_norm)-1, color='gray', linestyle='--')
+        ax.axvspan(
+            len(base_norm)-1,
+            len(base_norm) + next_date - 1,
+            facecolor='yellow', alpha=0.2, 
+            label='Prediction Area'
         )
 
-    # 기준 구간 & 예측 영역 표시
-    ax.axvline(x=len(base_norm)-1, color='gray', linestyle='--')
-    ax.axvspan(
-        len(base_norm)-1,
-        len(base_norm) + next_date - 1,
-        facecolor='yellow', alpha=0.2, 
-        label='Prediction Area'
-    )
+        ax.set_title("BTC 1H Pattern Matching (Close as Series to avoid ambiguous truth value)")
+        ax.set_xlabel("Hour")
+        ax.set_ylabel("Normalized Price")
+        ax.legend()
+        plt.tight_layout()
 
-    ax.set_title("BTC 1H Pattern Matching (Close as Series to avoid ambiguous truth value)")
-    ax.set_xlabel("Hour")
-    ax.set_ylabel("Normalized Price")
-    ax.legend()
-    plt.tight_layout()
-
-    st.pyplot(fig)
-    st.success("분석 완료!")
+        st.pyplot(fig)
+st.success("분석 완료!")
