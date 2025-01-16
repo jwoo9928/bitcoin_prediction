@@ -7,13 +7,17 @@ import numpy as np
 import datetime
 import pandas as pd
 from PIL import Image
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import predictors.similarity as sr
 import matplotlib.pyplot as plt
 import predictors.gpt_predict as gpts
+import google.generativeai as genai
+from google.generativeai.types import GenerateContentResponse
 from dotenv import load_dotenv
+import re
 import os as OS
 import gdown
+import json
 
 load_dotenv()
 
@@ -73,7 +77,7 @@ st.sidebar.header("How to use program")
 with st.sidebar:
     model_provider = st.selectbox(
         "예측 방식을 선택해주세요. ",
-        ["cosine similarity", "LLM"],
+        ["cosine similarity", "LLM","LLM2"],
         key="model_provider"
     )
 
@@ -97,6 +101,17 @@ with st.sidebar:
         1. 보고자 하는 기간을 선택해주세요. 🔑
         2. 그래프분석및시각화 클릭  📝
         3. 기다려주세요 🚀
+        """
+        )
+
+    if model_provider == "LLM2":
+        st.markdown(
+        """
+        
+        **GEMINI**를 이용하여 유사 패턴을 찾아내 예측하는 방식입니다.
+        1. 보고자 하는 기간을 선택해주세요. 🔑
+        2. 실행버튼 클릭  📝
+        3. 기다리세용 🚀
         """
         )
        
@@ -336,6 +351,91 @@ elif st.session_state.page == 'LLM':
 
     st.pyplot(fig)
     st.success("분석 완료!")
+
+
+elif st.session_state.page == 'LLM2':
+    gemini_key =OS.getenv('GOOGLE_API_KEY')
+
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    df = train
+    predicted_df = pd.DataFrame()
+    script_dir = OS.path.dirname(OS.path.abspath(__file__)) # 현재 스크립트의 경로
+    file_path = OS.path.join(script_dir, 'assets', 'prompt2.txt') # 경로 합치기
+
+    f = open(file_path, 'r')
+    prompt = f.read()
+    genai.configure(api_key=gemini_key)
+# 3-1) st.date_input()은 datetime.date이므로 pd.Timestamp로 변환
+    base_start_ts = pd.Timestamp(base_start_date)
+    base_end_ts   = pd.Timestamp(base_end_date)
+    today_ts      = pd.Timestamp.today().normalize()  # 오늘 날짜 (자정 기준)
+    next_date = 30
+
+    # yfinance는 미래(오늘 이후) 데이터가 없으므로, 미래 날짜를 잘라낸다
+    adj_start = min(base_start_ts, today_ts)
+    end_date  = min(base_end_ts,   today_ts)
+    
+    adj_end_for_download = end_date + pd.Timedelta(days=1)
+    with st.spinner("yfinance로 데이터를 가져오는 중..."):
+        try:
+            yfin_data = yf.download(
+                tickers="BTC-USD",
+                interval="1h",
+                start=adj_start,
+                end=adj_end_for_download
+            )
+        except Exception as e:
+            st.error(f"yfinance 데이터 수집 오류: {e}")
+            st.stop()
+
+    if yfin_data.empty:
+        st.warning("yfinance에서 해당 구간의 데이터를 가져오지 못했습니다. (미래 날짜이거나 거래 데이터 없음)")
+        st.stop()
+
+    st.write(f"**yfinance Base 구간 로드 성공**: {yfin_data.shape} rows")
+    st.dataframe(yfin_data)
+
+    
+    print(df.info)
+    df['Open time'] = pd.to_datetime(df.index)
+    df['Close time'] = pd.to_datetime(df['Close time'])
+
+
+    # 선택된 날짜 범위로 데이터 필터링
+    # start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+    start_datetime = end_datetime - timedelta(days=3 * 30)
+    data = df[(df['Open time'] >= start_datetime) & (df['Close time'] <= end_datetime)]
+
+    data = data.to_dict()
+    full_prompt = f"{prompt}\n\n**데이터:**\n{data}\n\n**요청사항:**\n1.  제공된 데이터의 마지막 시간부터 30시간까지의 값을 작성해주세요.\n2.  30시간치 데이터를 생략 없이 json형식으로 꼭 반환하세요."
+     
+    # 모델에 프롬프트를 전달하고 응답을 받습니다.
+    response: GenerateContentResponse = model.generate_content(full_prompt)
+
+    print(response.text)
+    try:
+        json_start = response.text.find('{')
+        json_end = response.text.rfind('}')
+        json_str = response.text[json_start:json_end+1]
+
+        # 숫자 키를 문자열 키로 변환
+        json_str = re.sub(r'{\s*(\d+):', r'{"\1":', json_str)
+        json_str = re.sub(r',\s*(\d+):', r',"\1":', json_str)
+        
+        predicted_data = json.loads(json_str)
+        # 데이터프레임으로 변환
+        predicted_df = pd.DataFrame(predicted_data)
+        predicted_df['Open time'] = pd.to_datetime(predicted_df['Open time'])
+        st.line_chart(predicted_df.set_index('Open time')['Close'])
+
+    except json.JSONDecodeError as e:
+        print(f"JSON 파싱 오류: {e}")
+        print("Gemini response content:", response.text)
+    except Exception as e:
+        print(f"기타 오류: {e}")
+        print("Gemini response content:", response.text)
+    
 
     
 
