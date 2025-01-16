@@ -394,8 +394,6 @@ elif st.session_state.page == 'LLM-GEMINI':
     st.write(f"**yfinance Base 구간 로드 성공**: {yfin_data.shape} rows")
     st.dataframe(yfin_data)
 
-    
-    print(df.info)
     df['Open time'] = pd.to_datetime(df.index)
     df['Close time'] = pd.to_datetime(df['Close time'])
 
@@ -426,7 +424,72 @@ elif st.session_state.page == 'LLM-GEMINI':
         # 데이터프레임으로 변환
         predicted_df = pd.DataFrame(predicted_data)
         predicted_df['Open time'] = pd.to_datetime(predicted_df['Open time'])
-        st.line_chart(predicted_df.set_index('Open time')['Close'])
+        
+
+        base = yfin_data['Close'].iloc[:,0]
+        base_norm = sr.nomarize_base(base)
+
+
+        predictions = predicted_df
+        predicted_prices = predictions['Close'].values
+
+        # 예측값을 정규화
+        predicted_prices_norm = (predicted_prices - min(predicted_prices)) / (max(predicted_prices) - min(predicted_prices))
+
+        sim_series = sr.get_sim_series(base, base_norm, train_close)
+
+        best_idx = sim_series.idxmax()
+
+        # (10) 시각화
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # 실제 이후 30시간의 실제 가격 데이터 가져오기
+        future_start_date = base_end_date
+
+        actual_future = train.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train.loc[future_start_date:].empty else pd.Series(dtype=float)
+        if actual_future.max() != actual_future.min():
+            actual_future_norm = (actual_future - actual_future.min()) / (actual_future.max() - actual_future.min())
+        else:
+            actual_future_norm = np.zeros(len(actual_future))
+        # x축에서의 시작 위치 설정 (기준 구간의 끝)
+        start_x = len(base_norm)  # 24
+
+        # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
+        ax.plot(range(start_x, start_x + len(actual_future_norm)),
+                actual_future_norm.values, label='[Actual Future] 24 Hours', color='darkred')
+
+        # Base (Normalized)
+        ax.plot(
+            range(len(base_norm)), 
+            base_norm, 
+            label=f"[Base] {adj_start} ~ {end_date}", 
+            color='black'
+        )
+
+
+        # 예측된 값 시각화
+        ax.plot(range(len(base_norm), len(base_norm) + len(predicted_prices_norm)),
+                predicted_prices_norm, label='[Prediction] GEMINI', color='darkblue', linewidth=2)
+        
+        next_date = 24
+        
+        # 기준 구간 & 예측 영역 표시
+        ax.axvline(x=len(base_norm)-1, color='gray', linestyle='--')
+        ax.axvspan(
+            len(base_norm)-1,
+            len(base_norm) + next_date - 1,
+            facecolor='yellow', alpha=0.2, 
+            label='Prediction Area'
+        )
+
+        ax.set_title("BTC 1H Pattern Matching (Close as Series to avoid ambiguous truth value)")
+        ax.set_xlabel("Hour")
+        ax.set_ylabel("Normalized Price")
+        ax.legend()
+        plt.tight_layout()
+
+        st.pyplot(fig)
+        st.success("분석 완료!")
 
     except json.JSONDecodeError as e:
         print(f"JSON 파싱 오류: {e}")
