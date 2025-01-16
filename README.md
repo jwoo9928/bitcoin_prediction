@@ -1,9 +1,7 @@
 
 <div align="center">
 <h2>비트코인 가격 예측 프로그램 B-redict💱</h2>
-
-![fisa](https://github.com/user-attachments/assets/3b951cc9-9c9b-41f2-84d6-d1682c7b41d8)
-<br>💻 우리FISA AI 엔지니어링 4기 팀프로젝트입니다. <br> 비트코인의 가격을 예측하여 시각화하는 프로그램입니다. <br>
+💻 우리FISA AI 엔지니어링 4기 팀프로젝트입니다. <br> 비트코인의 가격을 예측하여 시각화하는 프로그램입니다. <br>
 </div>
 
 ## ✅ Overview
@@ -15,7 +13,7 @@
 
 ## 🏁 목차
 
-- 📖 Description
+- [📖 Description](# 📖 Description)
 
 - 🧩 Why?
 
