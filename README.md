@@ -106,3 +106,8 @@ BTC-USD의 패턴을 기준으로 예측하기 때문에 단위 구간 내의 �
 **문제 & 원인** 2018년 데이터부터 불러와야 하는 데이터 용량 문제
 
 **해결** 토큰의 크기를 일주일 단위로 설정하였습니다.
+
+
+## 데이터 출처
+
+![kaggle bitcoin hour](https://www.kaggle.com/datasets/novandraanugrah/bitcoin-historical-datasets-2018-2024)
