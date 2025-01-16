@@ -1,7 +1,8 @@
 <div align="center">
 <h2>비트코인 가격 예측 프로그램 B-redict💱</h2>
+![Mobile App Screen Mockup, Mosaic](https://github.com/user-attachments/assets/455190a2-0287-4175-87de-13e60f7fa83b)
 
-![webmockup](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)
+
 
 
 </div>
@@ -34,7 +35,7 @@
 
 ## 📖 Description
 
-
+![webmockup](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)
 
 **과거 데이터를 토대로 비트코인의 가격을 예측**하는 프로그램입니다.
 
