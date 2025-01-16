@@ -18,8 +18,8 @@ Particularly consider:
 Recent weekly volatility and trends
 Intraday trading patterns
 Recent price momentum
-Weekly summary data:
-{weekly_data}
-
 Hourly data:
 {hourly_data}
+
+Weekly summary data:
+{weekly_data}

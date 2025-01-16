@@ -41,10 +41,11 @@ def generate_future_timestamps(start_time: datetime, periods: int) -> List[datet
 
 def create_gpt_prompt(weekly_df: pd.DataFrame, recent_hourly_data: pd.DataFrame, standard: str, prompt_template: str) -> str:
     """GPT 프롬프트 생성 함수"""
+    print(weekly_df[["Week", "Volume"]])
     return prompt_template.format(
         standard=standard,
-        weekly_data=weekly_df.tail().to_string(),
-        hourly_data=recent_hourly_data.tail().to_string(),
+        weekly_data=weekly_df.to_string(),
+        hourly_data=recent_hourly_data.to_string(),
     )
 
 def parse_gpt_response(response: str) -> pd.Series:
@@ -68,12 +69,11 @@ def predict_bitcoin_prices(weekly_data: pd.DataFrame, hourly_data: pd.DataFrame,
     # GPT 모델 설정
     model = ChatOpenAI(
         model="gpt-4o-mini",
-        temperature=0.7
+        temperature=0.7,
     )
     
     # 프롬프트 템플릿 생성
     prompt = ChatPromptTemplate.from_template("{input}")
-    
     # GPT에 질의
     chain = prompt | model
     response = chain.invoke({
