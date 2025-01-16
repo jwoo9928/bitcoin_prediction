@@ -9,7 +9,7 @@
 
 - **프로젝트 이름**   비트코인 가격 예측 프로그램 B-redict💱
 - **프로젝트 기간**   2025.01.15 - 2025.01.16
-- **배포 주소**  [최종본]('https://jwoo9928-bitcoin-prediction-app-wzhrj9.streamlit.app/')
+- **배포 주소**  [최종본](https://jwoo9928-bitcoin-prediction-app-wzhrj9.streamlit.app/)
 - **멤버**   우리FISA 4기 AI 엔지니어링 김정수 박재우 박혁준 허정원
 
 
