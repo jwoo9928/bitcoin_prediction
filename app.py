@@ -27,18 +27,28 @@ shared_link = OS.getenv('CSV_LINK')
 file_id = shared_link.split('/d/')[1].split('/view')[0]
 download_url = f"https://drive.google.com/uc?id={file_id}"
 output_file = "btc_1h_data.csv"
-gdown.download(download_url, output_file, quiet=False)
 
+# 파일이 이미 존재하는지 확인
+if not OS.path.exists(output_file):
+    st.write("CSV 파일이 로컬에 존재하지 않습니다. 다운로드를 시작합니다.")
+    gdown.download(download_url, output_file, quiet=False)
+else:
+    st.write("CSV 파일이 이미 존재합니다. 로컬에서 불러옵니다.")
+
+# CSV 파일 로드
 try:
     train_data = pd.read_csv(
-        output_file,   # CSV 경로를 본인 환경에 맞게 수정
+        output_file,   # CSV 경로
         parse_dates=['Open time'],
         index_col='Open time'
     )
-    #st.write(f"**CSV 로드 성공**: {train_data.shape} rows")
-    #st.dataframe(train_data.head(3))
+    st.write(f"**CSV 로드 성공**: {train_data.shape[0]} rows")
+    st.dataframe(train_data.head(3))
 except FileNotFoundError:
     st.error("btc_1h_data.csv 파일이 없습니다. 경로를 확인해 주세요.")
+    st.stop()
+except Exception as e:
+    st.error(f"CSV 파일을 로드하는 중 에러가 발생했습니다: {e}")
     st.stop()
 
 # 훈련 데이터 범위 (예: 2018-01-01 ~ 2024-12-31)
@@ -235,6 +245,7 @@ elif st.session_state.page == 'LLM':
     base_start_ts = pd.Timestamp(base_start_date)
     base_end_ts   = pd.Timestamp(base_end_date)
     today_ts      = pd.Timestamp.today().normalize()  # 오늘 날짜 (자정 기준)
+    next_date = 30
 
     # yfinance는 미래(오늘 이후) 데이터가 없으므로, 미래 날짜를 잘라낸다
     adj_start = min(base_start_ts, today_ts)
@@ -278,6 +289,21 @@ elif st.session_state.page == 'LLM':
     # (10) 시각화
     fig, ax = plt.subplots(figsize=(12, 6))
 
+    # 실제 이후 30시간의 실제 가격 데이터 가져오기
+    future_start_date = base_end_date
+
+    actual_future = train.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train.loc[future_start_date:].empty else pd.Series(dtype=float)
+    if actual_future.max() != actual_future.min():
+        actual_future_norm = (actual_future - actual_future.min()) / (actual_future.max() - actual_future.min())
+    else:
+        actual_future_norm = np.zeros(len(actual_future))
+    # x축에서의 시작 위치 설정 (기준 구간의 끝)
+    start_x = len(base_norm)  # 24
+
+    # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
+    ax.plot(range(start_x, start_x + len(actual_future_norm)),
+             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
+
     # Base (Normalized)
     ax.plot(
         range(len(base_norm)), 
@@ -301,21 +327,6 @@ elif st.session_state.page == 'LLM':
         facecolor='yellow', alpha=0.2, 
         label='Prediction Area'
     )
-
-    # 실제 이후 30시간의 실제 가격 데이터 가져오기
-    future_start_date = base_end_date
-    actual_future = train_data.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train_data.loc[future_start_date:].empty else pd.Series(dtype=float)
-    if actual_future.max() != actual_future.min():
-        actual_future_norm = (actual_future - actual_future.min()) / (actual_future.max() - actual_future.min())
-    else:
-        actual_future_norm = np.zeros(len(actual_future))
-
-    # x축에서의 시작 위치 설정 (기준 구간의 끝)
-    start_x = len(base_norm)  # 24
-
-    # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
-    ax.plot(range(start_x, start_x + len(actual_future_norm)),
-             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
 
     ax.set_title("BTC 1H Pattern Matching (Close as Series to avoid ambiguous truth value)")
     ax.set_xlabel("Hour")
@@ -415,6 +426,21 @@ else:
         label=f"[Base] {adj_start} ~ {adj_end}", 
         color='black'
     )
+
+    # 실제 이후 30시간의 실제 가격 데이터 가져오기
+    future_start_date = base_end_date
+
+    actual_future = train.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train.loc[future_start_date:].empty else pd.Series(dtype=float)
+    if actual_future.max() != actual_future.min():
+        actual_future_norm = (actual_future - actual_future.min()) / (actual_future.max() - actual_future.min())
+    else:
+        actual_future_norm = np.zeros(len(actual_future))
+    # x축에서의 시작 위치 설정 (기준 구간의 끝)
+    start_x = len(base_norm)  # 24
+
+    # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
+    ax.plot(range(start_x, start_x + len(actual_future_norm)),
+             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
 
 
 
