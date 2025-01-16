@@ -96,18 +96,18 @@ with st.sidebar:
         st.markdown(
         """
         
-        **LLM**를 이용하여 유사 패턴을 찾아내 예측하는 방식입니다.
+        **GPT**를 이용하여 예측하는 방식입니다.
         1. 보고자 하는 기간을 선택해주세요. 🔑
         2. 그래프분석및시각화 클릭  📝
         3. 기다려주세요 🚀
         """
         )
 
-    if model_provider == "LLM-GEMINI":
+    if model_provider == "LLM-GEMINI(시간 소요)":
         st.markdown(
         """
         
-        **GEMINI**를 이용하여 유사 패턴을 찾아내 예측하는 방식입니다.
+        **GEMINI**를 이용하여 예측하는 방식입니다.
         1. 보고자 하는 기간을 선택해주세요. 🔑
         2. 실행버튼 클릭  📝
         3. 기다리세용 🚀
