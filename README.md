@@ -110,4 +110,4 @@ BTC-USD의 패턴을 기준으로 예측하기 때문에 단위 구간 내의 �
 
 ## 데이터 출처
 
-![kaggle bitcoin hour](https://www.kaggle.com/datasets/novandraanugrah/bitcoin-historical-datasets-2018-2024)
+[kaggle bitcoin-historical-dataset-1hour](https://www.kaggle.com/datasets/novandraanugrah/bitcoin-historical-datasets-2018-2024)
