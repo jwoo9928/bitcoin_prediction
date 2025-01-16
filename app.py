@@ -77,7 +77,7 @@ st.sidebar.header("How to use program")
 with st.sidebar:
     model_provider = st.selectbox(
         "예측 방식을 선택해주세요. ",
-        ["cosine similarity", "LLM","LLM2"],
+        ["cosine similarity", "LLM-GPT","LLM-GEMINI"],
         key="model_provider"
     )
 
@@ -93,7 +93,7 @@ with st.sidebar:
         )
             
         
-    if model_provider == "LLM":
+    if model_provider == "LLM-GPT":
         st.markdown(
         """
         
@@ -104,7 +104,7 @@ with st.sidebar:
         """
         )
 
-    if model_provider == "LLM2":
+    if model_provider == "LLM-GEMINI":
         st.markdown(
         """
         
@@ -255,7 +255,7 @@ if st.session_state.page == 'home':
 
     st.markdown("- 위 차트는 2020년부터 2024년까지의 주요 암호화폐 등락을 나타냅니다.")
 
-elif st.session_state.page == 'LLM':
+elif st.session_state.page == 'LLM-GPT':
 # 3-1) st.date_input()은 datetime.date이므로 pd.Timestamp로 변환
     base_start_ts = pd.Timestamp(base_start_date)
     base_end_ts   = pd.Timestamp(base_end_date)
@@ -353,7 +353,7 @@ elif st.session_state.page == 'LLM':
     st.success("분석 완료!")
 
 
-elif st.session_state.page == 'LLM2':
+elif st.session_state.page == 'LLM-GEMINI':
     gemini_key =OS.getenv('GOOGLE_API_KEY')
 
     model = genai.GenerativeModel("gemini-1.5-flash")
