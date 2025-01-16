@@ -33,8 +33,9 @@
 
 ## 📖 Description
 
-![](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)|![](https://github.com/user-attachments/assets/455190a2-0287-4175-87de-13e60f7fa83b)|![](https://github.com/user-attachments/assets/455190a2-0287-4175-87de-13e60f7fa83b)
+![](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)|![20250116_113616](https://github.com/user-attachments/assets/fb8b2ad0-9cea-4b13-81fb-0de4dc1c770d)|![20250116_114046](https://github.com/user-attachments/assets/0daed3eb-c4aa-46b5-9de5-8ebc186965df))
 ---|---|--|
+초기화면|데이터 불러오기|결과 시각화
 
 **과거 데이터를 토대로 비트코인의 가격을 예측**하는 프로그램입니다.
 
