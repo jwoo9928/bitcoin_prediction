@@ -53,11 +53,11 @@ BTC-USD의 패턴을 기준으로 예측하기 때문에 단위 구간 내의 �
 
   
 
-**📍 GPT predict**
+**📍 LLM predict**
 
-**GPT 프롬프트를 활용**하는 방식입니다.
+**LLM 프롬프트를 활용**하는 방식입니다.
 
-지정한 기간의 데이터를 과거 데이터에서 필터링 한 후, 프롬프트 템플릿을 생성하여 GPT에 질의를 시행합니다. GPT의 응답을 파싱하여 시계열 데이터로 변환합니다. 
+지정한 기간의 데이터를 과거 데이터에서 필터링 한 후, 프롬프트 템플릿을 생성하여 LLM에 질의를 시행합니다. LLM의 응답을 파싱하여 시계열 데이터로 변환합니다. 
 
 
 ## 🧩 Why?
@@ -82,7 +82,7 @@ BTC-USD의 패턴을 기준으로 예측하기 때문에 단위 구간 내의 �
 
 ### Domain & Communication
 
-![Bitcoin](https://img.shields.io/badge/Bitcoin-000?style=for-the-badge&logo=bitcoin&logoColor=white)  ![ChatGPT](https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white) 	
+![Bitcoin](https://img.shields.io/badge/Bitcoin-000?style=for-the-badge&logo=bitcoin&logoColor=white)  ![ChatGPT](https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white) ![Google Gemini](https://img.shields.io/badge/google%20gemini-8E75B2?style=for-the-badge&logo=google%20gemini&logoColor=white)	
 ![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)
  
 
