@@ -15,12 +15,6 @@
 
 ## 🏁 목차
 
-- [Description](#---description)
-- [Why?](#---why-)
-- [사용기술](#---사용기술)
-- [트러블슈팅](#---트러블슈팅)
-
-
 - 📖 Description
 
 - 🧩 Why?
