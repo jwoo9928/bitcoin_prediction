@@ -12,6 +12,8 @@ import predictors.similarity as sr
 import matplotlib.pyplot as plt
 import predictors.gpt_predict as gpts
 from dotenv import load_dotenv
+import os as OS
+import gdown
 
 load_dotenv()
 
@@ -21,9 +23,15 @@ st.set_page_config(
     layout="wide",
 )
 
+shared_link = OS.getenv('CSV_LINK')
+file_id = shared_link.split('/d/')[1].split('/view')[0]
+download_url = f"https://drive.google.com/uc?id={file_id}"
+output_file = "btc_1h_data.csv"
+gdown.download(download_url, output_file, quiet=False)
+
 try:
     train_data = pd.read_csv(
-        'btc_1h_data.csv',   # CSV 경로를 본인 환경에 맞게 수정
+        output_file,   # CSV 경로를 본인 환경에 맞게 수정
         parse_dates=['Open time'],
         index_col='Open time'
     )
