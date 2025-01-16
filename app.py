@@ -34,10 +34,10 @@ output_file = "btc_1h_data.csv"
 
 # 파일이 이미 존재하는지 확인
 if not OS.path.exists(output_file):
-    st.write("CSV 파일이 로컬에 존재하지 않습니다. 다운로드를 시작합니다.")
+    print("CSV 파일이 로컬에 존재하지 않습니다. 다운로드를 시작합니다.")
     gdown.download(download_url, output_file, quiet=False)
 else:
-    st.write("CSV 파일이 이미 존재합니다. 로컬에서 불러옵니다.")
+    print("CSV 파일이 이미 존재합니다. 로컬에서 불러옵니다.")
 
 # CSV 파일 로드
 try:
@@ -46,13 +46,12 @@ try:
         parse_dates=['Open time'],
         index_col='Open time'
     )
-    st.write(f"**CSV 로드 성공**: {train_data.shape[0]} rows")
-    st.dataframe(train_data.head(3))
+    print(f"**CSV 로드 성공**: {train_data.shape[0]} rows")
 except FileNotFoundError:
-    st.error("btc_1h_data.csv 파일이 없습니다. 경로를 확인해 주세요.")
+    print("btc_1h_data.csv 파일이 없습니다. 경로를 확인해 주세요.")
     st.stop()
 except Exception as e:
-    st.error(f"CSV 파일을 로드하는 중 에러가 발생했습니다: {e}")
+    print(f"CSV 파일을 로드하는 중 에러가 발생했습니다: {e}")
     st.stop()
 
 # 훈련 데이터 범위 (예: 2018-01-01 ~ 2024-12-31)
