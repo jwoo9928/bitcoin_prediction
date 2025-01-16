@@ -33,7 +33,7 @@
 
 ## 📖 Description
 
-![](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)|![20250116_113616](https://github.com/user-attachments/assets/fb8b2ad0-9cea-4b13-81fb-0de4dc1c770d)|![20250116_114046](https://github.com/user-attachments/assets/0daed3eb-c4aa-46b5-9de5-8ebc186965df))
+![](https://github.com/user-attachments/assets/b6566135-5441-4612-9db6-50f605e390d5)|![20250116_113616-front](https://github.com/user-attachments/assets/98922579-96c5-4ba3-ab7d-d87f2cb94efa)|![20250116_114046-front](https://github.com/user-attachments/assets/71d1ef19-aed0-401c-b03b-4b0db7556385)
 ---|---|--|
 초기화면|데이터 불러오기|결과 시각화
 
