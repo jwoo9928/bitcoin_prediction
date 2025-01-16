@@ -42,9 +42,9 @@ def generate_future_timestamps(start_time: datetime, periods: int) -> List[datet
 def create_gpt_prompt(weekly_df: pd.DataFrame, recent_hourly_data: pd.DataFrame, standard: str, prompt_template: str) -> str:
     """GPT 프롬프트 생성 함수"""
     return prompt_template.format(
+        standard=standard,
         weekly_data=weekly_df.tail().to_string(),
         hourly_data=recent_hourly_data.tail().to_string(),
-        standard=standard
     )
 
 def parse_gpt_response(response: str) -> pd.Series:

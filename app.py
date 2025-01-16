@@ -245,7 +245,7 @@ elif st.session_state.page == 'LLM':
     base_start_ts = pd.Timestamp(base_start_date)
     base_end_ts   = pd.Timestamp(base_end_date)
     today_ts      = pd.Timestamp.today().normalize()  # 오늘 날짜 (자정 기준)
-    next_date = 30
+    next_date = 24
 
     # yfinance는 미래(오늘 이후) 데이터가 없으므로, 미래 날짜를 잘라낸다
     adj_start = min(base_start_ts, today_ts)
@@ -276,7 +276,7 @@ elif st.session_state.page == 'LLM':
 
     weekly_data = gpts.get_weekly_data(train_data, base_end_ts)
 
-    predictions = gpts.predict_bitcoin_prices(weekly_data, base.tail(30), base_end_ts, 'assets/prompt.txt')
+    predictions = gpts.predict_bitcoin_prices(weekly_data, base.tail(24), base_end_ts, 'assets/prompt.txt')
     predicted_prices = predictions['Close'].values
 
     # 예측값을 정규화
@@ -302,7 +302,7 @@ elif st.session_state.page == 'LLM':
 
     # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
     ax.plot(range(start_x, start_x + len(actual_future_norm)),
-             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
+             actual_future_norm.values, label='[Actual Future] 24 Hours', color='darkred')
 
     # Base (Normalized)
     ax.plot(
@@ -317,7 +317,7 @@ elif st.session_state.page == 'LLM':
     ax.plot(range(len(base_norm), len(base_norm) + len(predicted_prices_norm)),
             predicted_prices_norm, label='[Prediction] GPT', color='green', linewidth=2)
     
-    next_date = 30
+    next_date = 24
     
     # 기준 구간 & 예측 영역 표시
     ax.axvline(x=len(base_norm)-1, color='gray', linestyle='--')
@@ -382,7 +382,7 @@ else:
     base = yfin_data['Close'].iloc[:,0]
     base_norm = sr.nomarize_base(base)
     window_size = len(base)
-    next_date = 30
+    next_date = 24
 
     sim_series = sr.get_sim_series(base, base_norm, train_close)
 
@@ -427,7 +427,7 @@ else:
         color='black'
     )
 
-    # 실제 이후 30시간의 실제 가격 데이터 가져오기
+    # 실제 이후 24시간의 실제 가격 데이터 가져오기
     future_start_date = base_end_date
 
     actual_future = train.loc[future_start_date:].iloc[1 : 1 + next_date]['Close'] if not train.loc[future_start_date:].empty else pd.Series(dtype=float)
@@ -440,7 +440,7 @@ else:
 
     # 실제 미래 데이터를 진한 빨간색 선으로 플롯 (24~54)
     ax.plot(range(start_x, start_x + len(actual_future_norm)),
-             actual_future_norm.values, label='[Actual Future] 30 Hours', color='darkred')
+             actual_future_norm.values, label='[Actual Future] 24 Hours', color='darkred')
 
 
 
