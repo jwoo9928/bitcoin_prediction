@@ -1,7 +1,7 @@
 <div align="center">
-![webmockprofile](https://github.com/user-attachments/assets/639151d9-eadc-4b89-b5c8-2682bf030691)
-
 <h2>비트코인 가격 예측 프로그램 B-redict💱</h2>
+
+![webmockprofile](https://github.com/user-attachments/assets/639151d9-eadc-4b89-b5c8-2682bf030691)
 💻 우리FISA AI 엔지니어링 4기 팀프로젝트입니다. <br> 비트코인의 가격을 예측하여 시각화하는 프로그램입니다. <br>
 </div>
 
